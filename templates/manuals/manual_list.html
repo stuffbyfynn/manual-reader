@@ -3,35 +3,55 @@
 {% block title %}{{ model.brand.name }} {{ model.name }} ({{ year }}) - Manual Reader{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <nav class="flex text-sm text-slate-500 mb-2">
-        <a href="/" class="hover:text-white">Katalog</a>
-        <span class="mx-2">/</span>
-        <a href="{% url 'manuals:model_list' model.brand.slug %}" class="hover:text-white">{{ model.brand.name }}</a>
-        <span class="mx-2">/</span>
-        <span class="text-slate-300">{{ model.name }} ({{ year }})</span>
-    </nav>
-    <h1 class="text-2xl md:text-3xl font-bold text-white">{{ model.brand.name }} {{ model.name }} ({{ year }})</h1>
+<div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-up">
+    <div>
+        <nav class="flex items-center text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+            <a href="/" class="hover:text-blue-500 transition-colors">Katalog</a>
+            <span class="mx-3 opacity-30">/</span>
+            <a href="{% url 'manuals:model_list' model.brand.slug %}" class="hover:text-blue-500 transition-colors">{{ model.brand.name }}</a>
+            <span class="mx-3 opacity-30">/</span>
+            <span class="text-slate-300">{{ model.name }} ({{ year }})</span>
+        </nav>
+        <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">{{ model.name }} <span class="text-gradient">Dokumente</span></h1>
+        <p class="text-slate-500 font-bold mt-2 uppercase tracking-widest text-xs">Baujahr {{ year }}</p>
+    </div>
+    <a href="{% url 'manuals:model_list' model.brand.slug %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 text-sm font-bold text-slate-300 transition-all active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Zurück
+    </a>
 </div>
 
-<div class="grid grid-cols-1 gap-4">
+<div class="grid grid-cols-1 gap-6">
     {% for manual in manuals %}
-    <div class="glass p-4 md:p-6 rounded-2xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group">
-        <div class="flex items-center gap-4">
-            <div class="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="glass-card p-6 md:p-8 rounded-[2.5rem] flex flex-col sm:flex-row sm:items-center justify-between gap-6 group animate-fade-in-up stagger-{{ forloop.counter|default:1 }}">
+        <div class="flex items-center gap-6">
+            <div class="h-16 w-16 bg-blue-500/10 rounded-3xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             </div>
             <div class="min-w-0">
-                <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition-colors truncate">{{ manual.title }}</h3>
-                <p class="text-xs text-slate-500">Version {{ manual.version }} • {{ manual.created_at|date:"d.m.Y" }}</p>
+                <h3 class="text-xl md:text-2xl font-extrabold text-white group-hover:text-blue-400 transition-colors truncate">{{ manual.title }}</h3>
+                <div class="flex items-center gap-4 mt-1">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Version {{ manual.version }}</span>
+                    <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">{{ manual.created_at|date:"d.m.Y" }}</span>
+                </div>
             </div>
         </div>
-        <a href="{% url 'manuals:viewer' manual.id %}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white text-center px-8 py-3 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-500/20">
+        <a href="{% url 'manuals:viewer' manual.id %}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white text-center px-10 py-4 rounded-2xl font-extrabold transition-all hover:scale-105 active:scale-95 shadow-xl shadow-blue-500/20">
             Öffnen
         </a>
     </div>
+    {% empty %}
+    <div class="py-32 text-center glass rounded-[3rem] border-dashed border-slate-700">
+        <p class="text-slate-500 font-bold text-lg">Keine Dokumente für diese Auswahl gefunden.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
     {% empty %}
     <div class="py-20 text-center glass rounded-2xl border border-dashed border-slate-700">
         <p class="text-slate-400">Keine Dokumente für diese Auswahl gefunden.</p>

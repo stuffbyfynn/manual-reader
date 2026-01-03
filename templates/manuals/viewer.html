@@ -8,14 +8,17 @@
     #pdf-container {
         user-select: none;
         -webkit-user-select: none;
-        background-color: #0f172a;
+        background-color: #020617;
     }
     .page-wrapper {
         position: relative;
-        margin-bottom: 20px;
+        margin-bottom: 40px;
         display: flex;
         justify-content: center;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);
+        border-radius: 4px;
+        overflow: hidden;
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
     .watermark-overlay {
         position: absolute;
@@ -32,20 +35,36 @@
         overflow: hidden;
     }
     .watermark-text {
-        color: rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.08);
         font-size: 24px;
         transform: rotate(-45deg);
         white-space: nowrap;
         margin: 100px;
-        font-weight: bold;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
     }
     #viewer-controls {
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(8px);
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
     canvas {
         max-width: 100%;
         height: auto !important;
+    }
+    .loading-pulse {
+        width: 100%;
+        height: 800px;
+        background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+        background-size: 200% 100%;
+        animation: pulse 1.5s infinite;
+        border-radius: 8px;
+        margin-bottom: 40px;
+    }
+    @keyframes pulse {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
     @media (max-width: 768px) {
         .watermark-text {
@@ -57,30 +76,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="fixed inset-0 z-[60] bg-slate-900 flex flex-col overflow-hidden" oncontextmenu="return false;">
+<div class="fixed inset-0 z-[60] bg-[#020617] flex flex-col overflow-hidden animate-fade-in" oncontextmenu="return false;">
     <!-- Header Controls -->
-    <div id="viewer-controls" class="border-b border-slate-700 p-2 md:p-4 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-2 md:gap-4">
-            <a href="{% url 'manuals:manual_list' manual.vehicle_model.brand.slug manual.vehicle_model.slug manual.year %}" class="text-slate-400 hover:text-white transition-colors p-2">
+    <div id="viewer-controls" class="border-b border-white/5 p-3 md:p-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3 md:gap-6">
+            <a href="{% url 'manuals:manual_list' manual.vehicle_model.brand.slug manual.vehicle_model.slug manual.year %}" 
+               class="text-slate-400 hover:text-white transition-all p-2 hover:bg-white/5 rounded-xl active:scale-90">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </a>
-            <h1 class="text-white font-medium truncate max-w-[120px] sm:max-w-xs md:max-w-md text-sm md:text-base">{{ manual.title }}</h1>
+            <div class="flex flex-col">
+                <h1 class="text-white font-bold truncate max-w-[150px] sm:max-w-xs md:max-w-md text-sm md:text-lg leading-tight">{{ manual.title }}</h1>
+                <span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{{ manual.vehicle_model.brand.name }} {{ manual.vehicle_model.name }}</span>
+            </div>
         </div>
         
-        <div class="flex items-center gap-2 md:gap-4">
-            <span id="page-info" class="text-slate-400 text-[10px] md:text-sm hidden sm:block">Lade...</span>
-            <div class="flex gap-1 md:gap-2">
-                <button id="zoom-out" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg text-xs md:text-base">➖</button>
-                <button id="zoom-in" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg text-xs md:text-base">➕</button>
+        <div class="flex items-center gap-3 md:gap-6">
+            <div id="page-info" class="bg-white/5 px-4 py-2 rounded-xl border border-white/5 text-slate-300 text-[10px] md:text-xs font-bold tracking-widest hidden sm:block uppercase">
+                Vorbereiten...
+            </div>
+            <div class="flex gap-2">
+                <button id="zoom-out" class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                </button>
+                <button id="zoom-in" class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                </button>
             </div>
         </div>
     </div>
 
     <!-- PDF Canvas Container -->
-    <div id="pdf-container" class="flex-grow overflow-auto p-2 md:p-8 flex flex-col items-center">
-        <div id="pdf-render-target" class="w-full flex flex-col items-center"></div>
+    <div id="pdf-container" class="flex-grow overflow-auto p-4 md:p-12 flex flex-col items-center custom-scrollbar">
+        <div id="pdf-render-target" class="w-full flex flex-col items-center max-w-5xl">
+            <div class="loading-pulse"></div>
+            <div class="loading-pulse"></div>
+        </div>
     </div>
 </div>
 
@@ -92,7 +124,7 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
     let pdfDoc = null;
-    let scale = window.innerWidth < 768 ? 1.0 : 1.5;
+    let scale = window.innerWidth < 768 ? 0.8 : 1.25;
     const target = document.getElementById('pdf-render-target');
 
     async function renderPage(num) {

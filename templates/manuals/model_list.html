@@ -3,42 +3,56 @@
 {% block title %}{{ brand.name }} Modelle - Manual Reader{% endblock %}
 
 {% block content %}
-<div class="mb-8 flex items-center justify-between">
+<div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-up">
     <div>
-        <nav class="flex text-sm text-slate-500 mb-2">
-            <a href="/" class="hover:text-white">Katalog</a>
-            <span class="mx-2">/</span>
+        <nav class="flex items-center text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+            <a href="/" class="hover:text-blue-500 transition-colors">Katalog</a>
+            <span class="mx-3 opacity-30">/</span>
             <span class="text-slate-300">{{ brand.name }}</span>
         </nav>
-        <h1 class="text-3xl font-bold text-white">{{ brand.name }} Modelle</h1>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight">{{ brand.name }} <span class="text-gradient">Modelle</span></h1>
     </div>
-    <a href="/" class="text-sm text-blue-500 hover:text-blue-400">← <span class="hidden sm:inline">Zurück</span></a>
+    <a href="/" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 text-sm font-bold text-slate-300 transition-all active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Zurück
+    </a>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
     {% for model in models %}
-    <div class="glass rounded-2xl border border-slate-700 overflow-hidden flex flex-col">
-        <div class="p-5 flex-grow">
-            <h2 class="text-xl font-bold text-white mb-1">{{ model.name }}</h2>
-            <p class="text-xs text-slate-500 uppercase tracking-widest">{{ model.manuals.count }} Dokumente</p>
+    <div class="glass-card rounded-[2.5rem] overflow-hidden flex flex-col animate-fade-in-up stagger-{{ forloop.counter|default:1 }}">
+        <div class="p-8 flex-grow">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-3xl font-bold text-white tracking-tight">{{ model.name }}</h2>
+                <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                </div>
+            </div>
+            <p class="text-sm font-medium text-slate-500 uppercase tracking-widest">{{ model.manuals.count }} Dokumente verfügbar</p>
         </div>
-        <div class="bg-slate-800/50 p-5 border-t border-slate-700/50">
-            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Verfügbare Baujahre</h3>
-            <div class="flex flex-wrap gap-2">
+        
+        <div class="bg-white/5 p-8 border-t border-white/5">
+            <h3 class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-6">Wählen Sie ein Baujahr</h3>
+            <div class="flex flex-wrap gap-3">
                 {% regroup model.manuals.all by year as manual_years %}
                 {% for year_group in manual_years %}
-                <a href="{% url 'manuals:manual_list' brand.slug model.slug year_group.grouper %}" class="px-4 py-2 bg-slate-700 hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all active:scale-95">
+                <a href="{% url 'manuals:manual_list' brand.slug model.slug year_group.grouper %}" 
+                   class="px-6 py-3 bg-slate-800 hover:bg-blue-600 text-white rounded-2xl text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg hover:shadow-blue-600/20">
                     {{ year_group.grouper }}
                 </a>
                 {% empty %}
-                <p class="text-xs text-slate-500 italic">Keine Daten</p>
+                <p class="text-xs text-slate-500 italic">Keine Daten vorhanden</p>
                 {% endfor %}
             </div>
         </div>
     </div>
     {% empty %}
-    <div class="py-20 text-center glass rounded-2xl border border-dashed border-slate-700">
-        <p class="text-slate-400">Keine Modelle für diese Marke gefunden.</p>
+    <div class="col-span-full py-32 text-center glass rounded-[3rem] border-dashed border-slate-700">
+        <p class="text-slate-500 font-bold text-lg">Keine Modelle für diese Marke gefunden.</p>
     </div>
     {% endfor %}
 </div>
