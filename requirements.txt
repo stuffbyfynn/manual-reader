@@ -1,0 +1,12 @@
+Django>=5.0,<5.1
+django-environ
+mysqlclient
+pillow
+django-compressor
+django-libsass
+django-browser-reload
+python-magic
+django-ipware
+user-agents
+django-cors-headers
+gunicorn

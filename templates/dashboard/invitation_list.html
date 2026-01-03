@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Einladungen - Manual Reader{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <a href="{% url 'dashboard:home' %}" class="text-sm text-blue-500 hover:text-blue-400">← Zurück zum Dashboard</a>
+        <h1 class="text-3xl font-bold text-white mt-2">Einladungscodes</h1>
+    </div>
+    <form action="{% url 'dashboard:create_invitation' %}" method="POST">
+        {% csrf_token %}
+        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2 rounded-xl transition-all shadow-lg shadow-blue-500/20">
+            Neuen Code generieren
+        </button>
+    </form>
+</div>
+
+<div class="glass rounded-2xl border border-slate-700 overflow-hidden">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-800/50">
+            <tr>
+                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Code</th>
+                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Status</th>
+                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Erstellt am</th>
+                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Gültig bis</th>
+                <th class="p-4 text-xs font-bold text-slate-400 uppercase">Benutzer</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800">
+            {% for inv in invitations %}
+            <tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="p-4">
+                    <code class="bg-slate-900 text-blue-400 px-2 py-1 rounded border border-slate-700 font-mono text-sm">{{ inv.code }}</code>
+                </td>
+                <td class="p-4">
+                    {% if inv.used_by %}
+                    <span class="text-slate-500 text-xs uppercase font-bold">Benutzt</span>
+                    {% elif inv.expires_at < now %}
+                    <span class="text-red-500 text-xs uppercase font-bold">Abgelaufen</span>
+                    {% else %}
+                    <span class="text-emerald-500 text-xs uppercase font-bold">Aktiv</span>
+                    {% endif %}
+                </td>
+                <td class="p-4 text-sm text-slate-500">{{ inv.created_at|date:"d.m.Y" }}</td>
+                <td class="p-4 text-sm text-slate-500">{{ inv.expires_at|date:"d.m.Y" }}</td>
+                <td class="p-4 text-sm text-slate-200">
+                    {% if inv.used_by %}
+                    {{ inv.used_by.email }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="p-10 text-center text-slate-500 italic">Noch keine Codes generiert.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-8 p-6 glass rounded-2xl border border-blue-500/30 bg-blue-900/10">
+    <h3 class="text-blue-400 font-bold mb-2 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+        </svg>
+        Registrierungs-Link
+    </h3>
+    <p class="text-slate-400 text-sm">Geben Sie einem neuen Nutzer den Code oder senden Sie diesen Link:</p>
+    <div class="mt-2 flex items-center gap-2">
+        <input type="text" readonly value="https://manual-reader.com/accounts/register/[CODE]/" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-400 font-mono">
+    </div>
+</div>
+{% endblock %}

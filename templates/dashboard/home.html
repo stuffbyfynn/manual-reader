@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Manual Reader{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
+    <div class="text-sm text-slate-400">Systemzeit: {% now "d.m.Y H:i" %}</div>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <div class="glass p-6 rounded-2xl border border-slate-700">
+        <div class="text-slate-500 text-sm font-medium mb-1">Benutzer gesamt</div>
+        <div class="text-3xl font-bold text-white">{{ total_users }}</div>
+    </div>
+    <div class="glass p-6 rounded-2xl border border-slate-700 border-l-4 border-l-amber-500">
+        <div class="text-slate-500 text-sm font-medium mb-1">Warten auf Freigabe</div>
+        <div class="text-3xl font-bold text-amber-500">{{ pending_users }}</div>
+    </div>
+    <div class="glass p-6 rounded-2xl border border-slate-700 border-l-4 border-l-emerald-500">
+        <div class="text-slate-500 text-sm font-medium mb-1">Aktive Nutzer</div>
+        <div class="text-3xl font-bold text-emerald-500">{{ active_users }}</div>
+    </div>
+    <div class="glass p-6 rounded-2xl border border-slate-700">
+        <div class="text-slate-500 text-sm font-medium mb-1">PDFs im System</div>
+        <div class="text-3xl font-bold text-blue-500">{{ total_manuals }}</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Quick Actions -->
+    <div class="lg:col-span-1 space-y-6">
+        <h2 class="text-xl font-bold text-white mb-4">Schnellzugriff</h2>
+        <div class="grid gap-4">
+            <a href="{% url 'dashboard:user_list' %}" class="glass p-4 rounded-xl border border-slate-700 hover:bg-slate-800 transition-all flex items-center gap-4">
+                <span class="text-2xl">👥</span>
+                <div>
+                    <div class="font-semibold text-white">Nutzer verwalten</div>
+                    <div class="text-xs text-slate-500">Freigaben & Sperren</div>
+                </div>
+            </a>
+            <a href="{% url 'dashboard:invitation_list' %}" class="glass p-4 rounded-xl border border-slate-700 hover:bg-slate-800 transition-all flex items-center gap-4">
+                <span class="text-2xl">🎟️</span>
+                <div>
+                    <div class="font-semibold text-white">Einladungen</div>
+                    <div class="text-xs text-slate-500">Codes generieren</div>
+                </div>
+            </a>
+            <form action="{% url 'dashboard:create_invitation' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
+                    + Code generieren
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="lg:col-span-2">
+        <h2 class="text-xl font-bold text-white mb-4">Neueste Registrierungen</h2>
+        <div class="glass rounded-2xl border border-slate-700 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-800/50">
+                    <tr>
+                        <th class="p-4 text-xs font-bold text-slate-400 uppercase">E-Mail</th>
+                        <th class="p-4 text-xs font-bold text-slate-400 uppercase">Datum</th>
+                        <th class="p-4 text-xs font-bold text-slate-400 uppercase">Status</th>
+                        <th class="p-4 text-xs font-bold text-slate-400 uppercase text-right">Aktion</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                    {% for user in recent_users %}
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="p-4 text-sm text-slate-200">{{ user.email }}</td>
+                        <td class="p-4 text-sm text-slate-500">{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+                        <td class="p-4">
+                            {% if user.status == 'pending' %}
+                            <span class="px-2 py-1 bg-amber-900/30 text-amber-500 text-[10px] font-bold uppercase rounded border border-amber-500/30">Pending</span>
+                            {% elif user.status == 'active' %}
+                            <span class="px-2 py-1 bg-emerald-900/30 text-emerald-500 text-[10px] font-bold uppercase rounded border border-emerald-500/30">Aktiv</span>
+                            {% else %}
+                            <span class="px-2 py-1 bg-red-900/30 text-red-500 text-[10px] font-bold uppercase rounded border border-red-500/30">Gesperrt</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-right">
+                            {% if user.status == 'pending' %}
+                            <a href="{% url 'dashboard:approve_user' user.id %}" class="text-emerald-500 hover:text-emerald-400 text-sm font-medium">Freigeben</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

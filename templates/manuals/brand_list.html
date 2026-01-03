@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Marken - Manual Reader{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-white mb-2">Reparaturleitfäden</h1>
+    <p class="text-slate-400">Wählen Sie eine Marke aus, um die verfügbaren Modelle anzuzeigen.</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {% for brand in brands %}
+    <a href="{% url 'manuals:model_list' brand.slug %}" class="glass p-6 rounded-2xl border border-slate-700 hover:border-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] transition-all group text-center">
+        {% if brand.logo %}
+        <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" class="h-16 mx-auto mb-4 object-contain filter grayscale group-hover:grayscale-0 transition-all">
+        {% else %}
+        <div class="h-16 w-16 bg-slate-800 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+            {{ brand.name|slice:":1" }}
+        </div>
+        {% endif %}
+        <h2 class="text-xl font-semibold text-white group-hover:text-blue-400">{{ brand.name }}</h2>
+        <p class="text-sm text-slate-500 mt-1">{{ brand.models.count }} Modelle</p>
+    </a>
+    {% empty %}
+    <div class="col-span-full py-20 text-center glass rounded-2xl border border-dashed border-slate-700">
+        <p class="text-slate-400">Noch keine Marken im System.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

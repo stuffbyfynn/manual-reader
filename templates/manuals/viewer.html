@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Viewer - {{ manual.title }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<style>
+    #pdf-container {
+        user-select: none;
+        -webkit-user-select: none;
+        background-color: #0f172a;
+    }
+    .page-wrapper {
+        position: relative;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .watermark-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+    .watermark-text {
+        color: rgba(255, 255, 255, 0.15);
+        font-size: 24px;
+        transform: rotate(-45deg);
+        white-space: nowrap;
+        margin: 100px;
+        font-weight: bold;
+    }
+    #viewer-controls {
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(8px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fixed inset-0 z-[60] bg-slate-900 flex flex-col" oncontextmenu="return false;">
+    <!-- Header Controls -->
+    <div id="viewer-controls" class="border-b border-slate-700 p-4 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'manuals:manual_list' manual.vehicle_model.brand.slug manual.vehicle_model.slug manual.year %}" class="text-slate-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </a>
+            <h1 class="text-white font-medium truncate max-w-xs md:max-w-md">{{ manual.title }}</h1>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <span id="page-info" class="text-slate-400 text-sm">Lade Dokument...</span>
+            <div class="flex gap-2">
+                <button id="zoom-out" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg">➖</button>
+                <button id="zoom-in" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg">➕</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Canvas Container -->
+    <div id="pdf-container" class="flex-grow overflow-auto p-4 md:p-8 flex flex-col items-center">
+        <div id="pdf-render-target"></div>
+    </div>
+</div>
+
+<script>
+    const url = "{{ manual.file.url }}";
+    const userEmail = "{{ user.email }}";
+    const today = "{% now 'd.m.Y H:i' %}";
+    
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    let pdfDoc = null;
+    let scale = 1.5;
+    const target = document.getElementById('pdf-render-target');
+
+    async function renderPage(num) {
+        const page = await pdfDoc.getPage(num);
+        const viewport = page.getViewport({ scale });
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'page-wrapper';
+        wrapper.id = `page-${num}`;
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        
+        const watermarkOverlay = document.createElement('div');
+        watermarkOverlay.className = 'watermark-overlay';
+        
+        // Add watermark grid
+        for(let i=0; i<12; i++) {
+            const span = document.createElement('div');
+            span.className = 'watermark-text';
+            span.innerText = `${userEmail} | ${today}`;
+            watermarkOverlay.appendChild(span);
+        }
+
+        wrapper.appendChild(canvas);
+        wrapper.appendChild(watermarkOverlay);
+        target.appendChild(wrapper);
+
+        await page.render(renderContext).promise;
+    }
+
+    async function loadPDF() {
+        try {
+            pdfDoc = await pdfjsLib.getDocument(url).promise;
+            document.getElementById('page-info').innerText = `Gesamt: ${pdfDoc.numPages} Seiten`;
+            
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                await renderPage(i);
+            }
+        } catch (error) {
+            console.error('Error loading PDF:', error);
+            document.getElementById('page-info').innerText = 'Fehler beim Laden';
+        }
+    }
+
+    // Zoom controls
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        scale += 0.25;
+        target.innerHTML = '';
+        loadPDF();
+    });
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        if (scale > 0.5) {
+            scale -= 0.25;
+            target.innerHTML = '';
+            loadPDF();
+        }
+    });
+
+    // Anti-Print / Anti-Save
+    window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's')) {
+            e.preventDefault();
+            alert('Drucken und Speichern ist in diesem System deaktiviert.');
+        }
+    });
+
+    loadPDF();
+</script>
+{% endblock %}
