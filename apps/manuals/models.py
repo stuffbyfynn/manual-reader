@@ -36,6 +36,7 @@ class Manual(models.Model):
     title = models.CharField('Titel', max_length=255)
     file = models.FileField('PDF Datei', upload_to='manuals/')
     version = models.CharField('Version', max_length=20, default='1.0')
+    is_visible = models.BooleanField('Sichtbar', default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

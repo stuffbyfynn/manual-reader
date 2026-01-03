@@ -40,37 +40,47 @@
         font-weight: bold;
     }
     #viewer-controls {
-        background: rgba(15, 23, 42, 0.9);
+        background: rgba(15, 23, 42, 0.95);
         backdrop-filter: blur(8px);
+    }
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+    @media (max-width: 768px) {
+        .watermark-text {
+            font-size: 14px;
+            margin: 50px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="fixed inset-0 z-[60] bg-slate-900 flex flex-col" oncontextmenu="return false;">
+<div class="fixed inset-0 z-[60] bg-slate-900 flex flex-col overflow-hidden" oncontextmenu="return false;">
     <!-- Header Controls -->
-    <div id="viewer-controls" class="border-b border-slate-700 p-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <a href="{% url 'manuals:manual_list' manual.vehicle_model.brand.slug manual.vehicle_model.slug manual.year %}" class="text-slate-400 hover:text-white transition-colors">
+    <div id="viewer-controls" class="border-b border-slate-700 p-2 md:p-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2 md:gap-4">
+            <a href="{% url 'manuals:manual_list' manual.vehicle_model.brand.slug manual.vehicle_model.slug manual.year %}" class="text-slate-400 hover:text-white transition-colors p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </a>
-            <h1 class="text-white font-medium truncate max-w-xs md:max-w-md">{{ manual.title }}</h1>
+            <h1 class="text-white font-medium truncate max-w-[120px] sm:max-w-xs md:max-w-md text-sm md:text-base">{{ manual.title }}</h1>
         </div>
         
-        <div class="flex items-center gap-4">
-            <span id="page-info" class="text-slate-400 text-sm">Lade Dokument...</span>
-            <div class="flex gap-2">
-                <button id="zoom-out" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg">➖</button>
-                <button id="zoom-in" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg">➕</button>
+        <div class="flex items-center gap-2 md:gap-4">
+            <span id="page-info" class="text-slate-400 text-[10px] md:text-sm hidden sm:block">Lade...</span>
+            <div class="flex gap-1 md:gap-2">
+                <button id="zoom-out" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg text-xs md:text-base">➖</button>
+                <button id="zoom-in" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg text-xs md:text-base">➕</button>
             </div>
         </div>
     </div>
 
     <!-- PDF Canvas Container -->
-    <div id="pdf-container" class="flex-grow overflow-auto p-4 md:p-8 flex flex-col items-center">
-        <div id="pdf-render-target"></div>
+    <div id="pdf-container" class="flex-grow overflow-auto p-2 md:p-8 flex flex-col items-center">
+        <div id="pdf-render-target" class="w-full flex flex-col items-center"></div>
     </div>
 </div>
 
@@ -82,7 +92,7 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
     let pdfDoc = null;
-    let scale = 1.5;
+    let scale = window.innerWidth < 768 ? 1.0 : 1.5;
     const target = document.getElementById('pdf-render-target');
 
     async function renderPage(num) {

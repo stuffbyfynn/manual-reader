@@ -16,8 +16,8 @@
     </form>
 </div>
 
-<div class="glass rounded-2xl border border-slate-700 overflow-hidden">
-    <table class="w-full text-left border-collapse">
+<div class="glass rounded-2xl border border-slate-700 overflow-x-auto">
+    <table class="w-full text-left border-collapse min-w-[700px]">
         <thead class="bg-slate-800/50">
             <tr>
                 <th class="p-4 text-xs font-bold text-slate-400 uppercase">Code</th>
@@ -36,6 +36,8 @@
                 <td class="p-4">
                     {% if inv.used_by %}
                     <span class="text-slate-500 text-xs uppercase font-bold">Benutzt</span>
+                    {% elif inv.revoked %}
+                    <span class="text-amber-500 text-xs uppercase font-bold">Widerrufen</span>
                     {% elif inv.expires_at < now %}
                     <span class="text-red-500 text-xs uppercase font-bold">Abgelaufen</span>
                     {% else %}
@@ -45,11 +47,23 @@
                 <td class="p-4 text-sm text-slate-500">{{ inv.created_at|date:"d.m.Y" }}</td>
                 <td class="p-4 text-sm text-slate-500">{{ inv.expires_at|date:"d.m.Y" }}</td>
                 <td class="p-4 text-sm text-slate-200">
-                    {% if inv.used_by %}
-                    {{ inv.used_by.email }}
-                    {% else %}
-                    -
-                    {% endif %}
+                    <div class="flex items-center justify-between">
+                        <span>
+                            {% if inv.used_by %}
+                            {{ inv.used_by.email }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </span>
+                        {% if not inv.used_by and not inv.revoked and inv.expires_at > now %}
+                        <form action="{% url 'dashboard:revoke_invitation' inv.id %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-400 font-bold uppercase tracking-wider ml-4">
+                                Stoppen
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% empty %}

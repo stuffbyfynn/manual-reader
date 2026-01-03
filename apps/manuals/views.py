@@ -28,10 +28,13 @@ class ManualListView(LoginRequiredMixin, ListView):
     context_object_name = 'manuals'
 
     def get_queryset(self):
-        return Manual.objects.filter(
+        qs = Manual.objects.filter(
             vehicle_model__slug=self.kwargs['model_slug'],
             year=self.kwargs['year']
         )
+        if not self.request.user.is_staff:
+            qs = qs.filter(is_visible=True)
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,6 +47,10 @@ def viewer_page(request, manual_id):
         return redirect('accounts:login')
     
     manual = get_object_or_404(Manual, id=manual_id)
+    
+    # Check visibility
+    if not manual.is_visible and not request.user.is_staff:
+        return HttpResponseForbidden("Dieses Handbuch ist derzeit nicht verfügbar.")
     
     # Check if user is active
     if request.user.status != 'active':

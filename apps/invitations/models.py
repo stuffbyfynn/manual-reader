@@ -9,9 +9,10 @@ class Invitation(models.Model):
     used_by = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='used_invitation')
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+    revoked = models.BooleanField(default=False)
     
     def is_valid(self):
-        return self.used_by is None and self.expires_at > timezone.now()
+        return self.used_by is None and self.expires_at > timezone.now() and not self.revoked
 
     def __str__(self):
         return f"{self.code} ({'Benutzt' if self.used_by else 'Frei'})"

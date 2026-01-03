@@ -10,4 +10,7 @@ urlpatterns = [
     path('users/block/<int:user_id>/', views.block_user, name='block_user'),
     path('invitations/', views.invitation_list, name='invitation_list'),
     path('invitations/create/', views.create_invitation, name='create_invitation'),
+    path('invitations/revoke/<int:invitation_id>/', views.revoke_invitation, name='revoke_invitation'),
+    path('manuals/', views.manual_list, name='manual_list'),
+    path('manuals/toggle/<int:manual_id>/', views.toggle_manual_visibility, name='toggle_manual_visibility'),
 ]

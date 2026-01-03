@@ -55,4 +55,26 @@ def create_invitation(request):
 @user_passes_test(is_admin)
 def invitation_list(request):
     invitations = Invitation.objects.all().order_by('-created_at')
-    return render(request, 'dashboard/invitation_list.html', {'invitations': invitations})
+    return render(request, 'dashboard/invitation_list.html', {
+        'invitations': invitations,
+        'now': timezone.now()
+    })
+
+@user_passes_test(is_admin)
+def revoke_invitation(request, invitation_id):
+    invitation = get_object_or_404(Invitation, id=invitation_id)
+    invitation.revoked = True
+    invitation.save()
+    return redirect('dashboard:invitation_list')
+
+@user_passes_test(is_admin)
+def manual_list(request):
+    manuals = Manual.objects.all().select_related('vehicle_model__brand').order_by('vehicle_model__brand__name', 'vehicle_model__name', '-year')
+    return render(request, 'dashboard/manual_list.html', {'manuals': manuals})
+
+@user_passes_test(is_admin)
+def toggle_manual_visibility(request, manual_id):
+    manual = get_object_or_404(Manual, id=manual_id)
+    manual.is_visible = not manual.is_visible
+    manual.save()
+    return redirect('dashboard:manual_list')
