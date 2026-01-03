@@ -92,6 +92,8 @@ Security doesn't stop at passwords. Every device is fingerprinted upon first log
 - **Tailwind CSS:** Utility-first CSS for a modern, responsive UI.
 - **Alpine.js:** Lightweight JavaScript for client-side state management.
 - **PDF.js:** Mozilla's open-source PDF parsing and rendering library.
+- **Glassmorphism UI:** Sophisticated design system using multi-layered blur, refined gradients, and Plus Jakarta Sans typography.
+- **Cinematic Animations:** Staggered load effects, Shopify-style cycling text, and smooth micro-interactions.
 
 ### Deployment & DevOps
 - **Docker:** Containerization for environment consistency.
